@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎤 Idol Agency Tycoon v2.0</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .agency-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .agency-name {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .agency-level {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .resources {
+            display: flex;
+            gap: 20px;
+        }
+
+        .resource {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .resource:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .resource-icon {
+            font-size: 24px;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .merge-area, .idols-sidebar, .section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .merge-slots {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .merge-slot {
+            width: 150px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 3px dashed rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .merge-slot:hover {
+            transform: translateY(-5px);
+            border-color: #FFD700;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .merge-slot.filled {
+            border-style: solid;
+            border-color: #FFD700;
+            background: rgba(255, 215, 0, 0.2);
+        }
+
+        .merge-arrow {
+            font-size: 40px;
+            color: #FFD700;
+        }
+
+        .button, .merge-button {
+            display: block;
+            margin: 0 auto;
+            padding: 15px 50px;
+            font-size: 18px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border: none;
+            border-radius: 15px;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .button:hover, .merge-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.6);
+        }
+
+        .button:disabled, .merge-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .inventory {
+            margin-top: 30px;
+        }
+
+        .inventory-title {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #FFD700;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #FFD700;
+            box-shadow: 0 10px 25px rgba(255, 215, 0, 0.3);
+        }
+
+        .card.selected {
+            border-color: #FFD700;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.2));
+        }
+
+        .card-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        .card-name {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .card-level {
+            font-size: 20px;
+            margin-top: 5px;
+        }
+
+        .card-count {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+        }
+
+        .idols-sidebar {
+            max-height: 800px;
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            font-size: 22px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #FFD700;
+        }
+
+        .idol-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .idol-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .idol-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .idol-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            overflow: hidden;
+            border: 2px solid #FFD700;
+        }
+
+        .idol-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .idol-info h3 {
+            font-size: 16px;
+            margin-bottom: 3px;
+        }
+
+        .idol-role {
+            font-size: 12px;
+            color: #FFD700;
+        }
+
+        .idol-level {
+            font-size: 11px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 8px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-top: 3px;
+        }
+
+        .idol-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 11px;
+        }
+
+        .stat {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #FFD700;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 3px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FFD700, #FFA500);
+            transition: width 0.3s;
+        }
+
+        .bottom-nav {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-button {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 15px 30px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-button:hover {
+            transform: translateY(-3px);
+            border-color: #FFD700;
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
+        }
+
+        .nav-button.active {
+            border-color: #FFD700;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.2));
+        }
+
+        .nav-icon {
+            font-size: 30px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .modal-title {
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #FFD700;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 30px;
+            cursor: pointer;
+            color: #fff;
+            transition: all 0.3s;
+        }
+
+        .close-modal:hover {
+            color: #FFD700;
+            transform: scale(1.2);
+        }
+
+        .recruit-grid, .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .recruit-card, .shop-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .recruit-card:hover, .shop-item:hover {
+            transform: scale(1.05);
+            border-color: #FFD700;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .recruit-card.común {
+            border-color: rgba(169, 169, 169, 0.5);
+        }
+
+        .recruit-card.raro {
+            border-color: rgba(65, 105, 225, 0.5);
+            background: linear-gradient(135deg, rgba(65, 105, 225, 0.1), rgba(255, 255, 255, 0.1));
+        }
+
+        .recruit-card.épico {
+            border-color: rgba(138, 43, 226, 0.5);
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.1), rgba(255, 255, 255, 0.1));
+        }
+
+        .recruit-card.legendario {
+            border-color: rgba(255, 215, 0, 0.7);
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.1));
+            animation: legendary-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes legendary-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.6); }
+        }
+
+        .rarity-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .rarity-badge.común {
+            background: rgba(169, 169, 169, 0.8);
+            color: #fff;
+        }
+
+        .rarity-badge.raro {
+            background: rgba(65, 105, 225, 0.8);
+            color: #fff;
+        }
+
+        .rarity-badge.épico {
+            background: rgba(138, 43, 226, 0.8);
+            color: #fff;
+        }
+
+        .rarity-badge.legendario {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+        }
+
+        .recruit-avatar, .item-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            overflow: hidden;
+            border: 3px solid #FFD700;
+        }
+
+        .recruit-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .item-icon {
+            font-size: 50px;
+        }
+
+        .recruit-name, .item-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .recruit-cost, .item-cost {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 8px;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .comeback-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .comeback-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .comeback-card:hover {
+            transform: translateY(-5px);
+            border-color: #FFD700;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .comeback-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .comeback-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .comeback-reward {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .events-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .event-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .event-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .event-info {
+            flex: 1;
+        }
+
+        .event-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .event-description {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .event-timer {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        @keyframes merge-success {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2) rotate(5deg); }
+            100% { transform: scale(1); }
+        }
+
+        .merge-animation {
+            animation: merge-success 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes particle {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-100px) scale(0); opacity: 0; }
+        }
+
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            animation: particle 1s ease-out forwards;
+            font-size: 30px;
+            z-index: 9999;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #333;
+            padding: 20px 30px;
+            border-radius: 15px;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
+            z-index: 2000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .merge-slots {
+                flex-direction: column;
+            }
+
+            .merge-arrow {
+                transform: rotate(90deg);
+            }
+
+            .resources {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="agency-info">
+                <div class="agency-name">⭐ STARLIGHT AGENCY</div>
+                <div class="agency-level">Nivel <span id="agencyLevel">1</span> | Próximo nivel: <span id="nextLevelFame">100</span> ⭐</div>
+            </div>
+            <div class="resources">
+                <div class="resource">
+                    <span class="resource-icon">💰</span>
+                    <span id="money">1000</span>
+                </div>
+                <div class="resource">
+                    <span class="resource-icon">⭐</span>
+                    <span id="fame">0</span>
+                </div>
+                <div class="resource">
+                    <span class="resource-icon">🎵</span>
+                    <span id="talent">50</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <div class="merge-area" id="trainingSection">
+                <h2 class="section-title">🔄 Training Fusion System</h2>
+                
+                <div class="merge-slots">
+                    <div class="merge-slot" id="slot1" onclick="selectSlot(1)">
+                        <span style="font-size: 40px; opacity: 0.5;">❓</span>
+                    </div>
+                    <div class="merge-arrow">➕</div>
+                    <div class="merge-slot" id="slot2" onclick="selectSlot(2)">
+                        <span style="font-size: 40px; opacity: 0.5;">❓</span>
+                    </div>
+                    <div class="merge-arrow">➡️</div>
+                    <div class="merge-slot" id="result">
+                        <span style="font-size: 40px; opacity: 0.5;">✨</span>
+                    </div>
+                </div>
+
+                <button class="merge-button" id="mergeBtn" onclick="performMerge()" disabled>
+                    🌟 FUSIONAR ENTRENAMIENTO
+                </button>
+
+                <div class="inventory">
+                    <h3 class="inventory-title">📦 Cartas de Entrenamiento</h3>
+                    <div class="cards-grid" id="cardsGrid"></div>
+                </div>
+            </div>
+
+            <div class="idols-sidebar">
+                <h3 class="sidebar-title">🌟 TUS IDOLS</h3>
+                <div id="idolsList"></div>
+                <button class="button" style="width: 100%; margin-top: 20px;" onclick="openRecruitModal()">
+                    <span style="font-size: 24px;">➕</span>
+                    Reclutar Idol
+                </button>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <button class="nav-button active" onclick="switchSection('training')">
+                <span class="nav-icon">🎓</span>
+                Entrenamiento
+            </button>
+            <button class="nav-button" onclick="switchSection('comeback')">
+                <span class="nav-icon">💿</span>
+                Comeback
+            </button>
+            <button class="nav-button" onclick="switchSection('events')">
+                <span class="nav-icon">🎯</span>
+                Eventos
+            </button>
+            <button class="nav-button" onclick="openShopModal()">
+                <span class="nav-icon">🛍️</span>
+                Tienda
+            </button>
+            <button class="nav-button" onclick="autoSave()">
+                <span class="nav-icon">💾</span>
+                Guardar
+            </button>
+        </div>
+    </div>
+
+    <div class="modal" id="recruitModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeRecruitModal()">✕</span>
+            <h2 class="modal-title">🎤 RECLUTAMIENTO DE IDOLS</h2>
+            <div class="recruit-grid" id="recruitGrid"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="shopModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeShopModal()">✕</span>
+            <h2 class="modal-title">🛍️ TIENDA</h2>
+            <div class="shop-grid" id="shopGrid"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="comebackModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeComebackModal()">✕</span>
+            <h2 class="modal-title">💿 LANZAR COMEBACK</h2>
+            <p style="text-align: center; margin-bottom: 20px;">Selecciona tus idols para el comeback:</p>
+            <div id="comebackIdolSelection"></div>
+            <button class="button" style="margin-top: 20px;" onclick="launchComeback()">
+                🚀 LANZAR COMEBACK
+            </button>
+        </div>
+    </div>
+    <script>
+        let gameState = {
+            money: 2000,
+            fame: 0,
+            talent: 100,
+            agencyLevel: 1,
+            idols: [],
+            cards: [
+                { type: 'vocal', level: 1, count: 5, icon: '🎤' },
+                { type: 'dance', level: 1, count: 5, icon: '💃' },
+                { type: 'rap', level: 1, count: 4, icon: '🎧' },
+                { type: 'visual', level: 1, count: 4, icon: '✨' },
+                { type: 'charisma', level: 1, count: 3, icon: '👑' },
+                { type: 'stage', level: 1, count: 3, icon: '🎭' }
+            ],
+            selectedCards: [null, null],
+            events: [],
+            comebackCount: 0
+        };
+
+        const availableTrainees = [
+            // INICIALES (500 💰)
+            { name: 'Luna', role: 'Main Vocal', icon: '🌙', cost: 500, stats: { vocal: 8, dance: 5, rap: 4, visual: 7 }, image: 'https://i.imgur.com/Db5nBOw.jpeg', level: 1, exp: 0, rarity: 'inicial' },
+            { name: 'Stella', role: 'Lead Dancer', icon: '⭐', cost: 500, stats: { vocal: 5, dance: 9, rap: 5, visual: 6 }, image: 'https://i.imgur.com/YGVMeA0.jpeg', level: 1, exp: 0, rarity: 'inicial' },
+            { name: 'Nova', role: 'Main Rapper', icon: '💫', cost: 500, stats: { vocal: 4, dance: 6, rap: 9, visual: 5 }, image: 'https://i.imgur.com/aRSVHvb.jpeg', level: 1, exp: 0, rarity: 'inicial' },
+            { name: 'Aurora', role: 'Visual', icon: '🌸', cost: 500, stats: { vocal: 6, dance: 6, rap: 4, visual: 9 }, image: 'https://i.imgur.com/Xf5DK5I.jpeg', level: 1, exp: 0, rarity: 'inicial' },
+            { name: 'Crystal', role: 'All-Rounder', icon: '💎', cost: 800, stats: { vocal: 7, dance: 7, rap: 7, visual: 7 }, image: 'https://i.imgur.com/Yrkljdb.jpeg', level: 1, exp: 0, rarity: 'inicial' },
+            
+            // COMUNES (300 💰)
+            { name: 'Melody', role: 'Sub Vocal', icon: '🍑', cost: 300, stats: { vocal: 6, dance: 4, rap: 3, visual: 5 }, image: 'https://i.imgur.com/YpI0XCm.png', level: 1, exp: 0, rarity: 'común' },
+            { name: 'Winter', role: 'Sub Dancer', icon: '❄️', cost: 300, stats: { vocal: 4, dance: 6, rap: 3, visual: 6 }, image: 'https://i.imgur.com/yym5YTA.png', level: 1, exp: 0, rarity: 'común' },
+            
+            // RAROS (600 💰)
+            { name: 'Raven', role: 'Lead Rapper', icon: '🖤', cost: 600, stats: { vocal: 5, dance: 6, rap: 8, visual: 6 }, image: 'https://i.imgur.com/yEMb1J1.png', level: 1, exp: 0, rarity: 'raro' },
+            { name: 'Honey', role: 'Center', icon: '🍯', cost: 600, stats: { vocal: 7, dance: 7, rap: 5, visual: 8 }, image: 'https://i.imgur.com/B6c0F35.png', level: 1, exp: 0, rarity: 'raro' },
+            { name: 'Azure', role: 'Vocalist', icon: '🌊', cost: 600, stats: { vocal: 8, dance: 5, rap: 4, visual: 7 }, image: 'https://i.imgur.com/astxJjz.png', level: 1, exp: 0, rarity: 'raro' },
+            { name: 'Spike', role: 'Rapper', icon: '💗', cost: 600, stats: { vocal: 4, dance: 7, rap: 8, visual: 6 }, image: 'https://i.imgur.com/Qxjjpvi.png', level: 1, exp: 0, rarity: 'raro' },
+            
+            // ÉPICOS (900 💰)
+            { name: 'Sage', role: 'Main Producer', icon: '🌿', cost: 900, stats: { vocal: 7, dance: 6, rap: 7, visual: 8 }, image: 'https://i.imgur.com/wyleUlB.png', level: 1, exp: 0, rarity: 'épico' },
+            { name: 'Blaze', role: 'Performance Director', icon: '🔥', cost: 900, stats: { vocal: 6, dance: 9, rap: 6, visual: 8 }, image: 'https://i.imgur.com/OTsCmVY.png', level: 1, exp: 0, rarity: 'épico' },
+            { name: 'Ember', role: 'Main Dancer', icon: '🔥', cost: 900, stats: { vocal: 5, dance: 10, rap: 6, visual: 7 }, image: 'https://i.imgur.com/l5f2Bmr.png', level: 1, exp: 0, rarity: 'épico' },
+            
+            // LEGENDARIO (1500 💰)
+            { name: 'Serenity', role: 'Leader', icon: '🌌', cost: 1500, stats: { vocal: 9, dance: 9, rap: 8, visual: 10 }, image: 'https://i.imgur.com/mA0HQNR.png', level: 1, exp: 0, rarity: 'legendario' }
+        ];
+
+        const shopItems = [
+            { name: 'Pack Básico', icon: '📦', cost: 100, type: 'pack', cards: 3, description: '3 cartas aleatorias nivel 1' },
+            { name: 'Pack Premium', icon: '🎁', cost: 300, type: 'pack', cards: 5, description: '5 cartas aleatorias nivel 1-2' },
+            { name: 'Carta Vocal ⭐', icon: '🎤', cost: 50, type: 'card', cardType: 'vocal', level: 1 },
+            { name: 'Carta Dance ⭐', icon: '💃', cost: 50, type: 'card', cardType: 'dance', level: 1 },
+            { name: 'Carta Rap ⭐', icon: '🎧', cost: 50, type: 'card', cardType: 'rap', level: 1 },
+            { name: 'Carta Visual ⭐', icon: '✨', cost: 50, type: 'card', cardType: 'visual', level: 1 },
+            { name: 'Boost de Dinero', icon: '💰', cost: 200, type: 'boost', reward: { money: 500 } },
+            { name: 'Boost de Fama', icon: '⭐', cost: 150, type: 'boost', reward: { fame: 100 } }
+        ];
+
+        let currentSection = 'training';
+        let selectedComebackIdols = [];
+
+        function init() {
+            loadGame();
+            updateUI();
+            renderCards();
+            renderIdols();
+            renderRecruitOptions();
+            renderShop();
+            generateEvents();
+            setInterval(updateEvents, 1000);
+        }
+
+        function updateUI() {
+            document.getElementById('money').textContent = gameState.money;
+            document.getElementById('fame').textContent = gameState.fame;
+            document.getElementById('talent').textContent = gameState.talent;
+            document.getElementById('agencyLevel').textContent = gameState.agencyLevel;
+            
+            const nextLevel = gameState.agencyLevel * 100;
+            document.getElementById('nextLevelFame').textContent = nextLevel;
+            
+            if (gameState.fame >= nextLevel) {
+                levelUpAgency();
+            }
+        }
+
+        function levelUpAgency() {
+            gameState.agencyLevel++;
+            gameState.fame -= (gameState.agencyLevel - 1) * 100;
+            showNotification(`🎉 ¡Agencia subió a nivel ${gameState.agencyLevel}!`);
+            createParticles('⭐');
+            updateUI();
+        }
+
+        function renderCards() {
+            const grid = document.getElementById('cardsGrid');
+            grid.innerHTML = '';
+            
+            gameState.cards.forEach((card, index) => {
+                if (card.count > 0) {
+                    const cardEl = document.createElement('div');
+                    cardEl.className = 'card fade-in';
+                    cardEl.innerHTML = `
+                        <div class="card-count">x${card.count}</div>
+                        <div class="card-icon">${card.icon}</div>
+                        <div class="card-name">${card.type.toUpperCase()}</div>
+                        <div class="card-level">${'⭐'.repeat(card.level)}</div>
+                    `;
+                    cardEl.onclick = () => selectCard(index);
+                    grid.appendChild(cardEl);
+                }
+            });
+        }
+
+        function selectCard(cardIndex) {
+            const card = gameState.cards[cardIndex];
+            if (card.count <= 0) return;
+
+            let slotIndex = gameState.selectedCards.findIndex(s => s === null);
+            if (slotIndex === -1) {
+                slotIndex = 0;
+                returnCardToInventory(0);
+            }
+
+            gameState.selectedCards[slotIndex] = { ...card, originalIndex: cardIndex };
+            card.count--;
+            
+            updateSlots();
+            renderCards();
+            checkMergeReady();
+        }
+
+        function selectSlot(slotNum) {
+            if (gameState.selectedCards[slotNum - 1] !== null) {
+                returnCardToInventory(slotNum - 1);
+                updateSlots();
+                renderCards();
+                checkMergeReady();
+            }
+        }
+
+        function returnCardToInventory(slotIndex) {
+            const card = gameState.selectedCards[slotIndex];
+            if (card) {
+                gameState.cards[card.originalIndex].count++;
+                gameState.selectedCards[slotIndex] = null;
+            }
+        }
+
+        function updateSlots() {
+            for (let i = 0; i < 2; i++) {
+                const slot = document.getElementById(`slot${i + 1}`);
+                const card = gameState.selectedCards[i];
+                
+                if (card) {
+                    slot.className = 'merge-slot filled';
+                    slot.innerHTML = `
+                        <div>
+                            <div style="font-size: 50px;">${card.icon}</div>
+                            <div style="font-size: 14px; margin-top: 5px;">${card.type.toUpperCase()}</div>
+                            <div style="font-size: 16px;">${'⭐'.repeat(card.level)}</div>
+                        </div>
+                    `;
+                } else {
+                    slot.className = 'merge-slot';
+                    slot.innerHTML = '<span style="font-size: 40px; opacity: 0.5;">❓</span>';
+                }
+            }
+        }
+
+        function checkMergeReady() {
+            const [card1, card2] = gameState.selectedCards;
+            const btn = document.getElementById('mergeBtn');
+            
+            if (card1 && card2 && card1.type === card2.type && card1.level === card2.level) {
+                btn.disabled = false;
+            } else {
+                btn.disabled = true;
+            }
+        }
+
+        function performMerge() {
+            const [card1, card2] = gameState.selectedCards;
+            
+            if (!card1 || !card2) return;
+
+            const newCard = {
+                type: card1.type,
+                level: card1.level + 1,
+                count: 1,
+                icon: card1.icon
+            };
+
+            const existingCard = gameState.cards.find(c => c.type === newCard.type && c.level === newCard.level);
+            
+            if (existingCard) {
+                existingCard.count++;
+            } else {
+                gameState.cards.push(newCard);
+            }
+
+            gameState.talent += 10 * newCard.level;
+            gameState.fame += 5 * newCard.level;
+
+            gameState.selectedCards = [null, null];
+            
+            const resultSlot = document.getElementById('result');
+            resultSlot.className = 'merge-slot filled merge-animation';
+            resultSlot.innerHTML = `
+                <div>
+                    <div style="font-size: 60px;">${newCard.icon}</div>
+                    <div style="font-size: 16px; margin-top: 5px;">${newCard.type.toUpperCase()}</div>
+                    <div style="font-size: 20px;">${'⭐'.repeat(newCard.level)}</div>
+                </div>
+            `;
+
+            setTimeout(() => {
+                resultSlot.className = 'merge-slot';
+                resultSlot.innerHTML = '<span style="font-size: 40px; opacity: 0.5;">✨</span>';
+            }, 2000);
+
+            showNotification(`¡Fusión exitosa! ${newCard.type.toUpperCase()} ${'⭐'.repeat(newCard.level)}`);
+            createParticles('✨');
+            
+            updateUI();
+            updateSlots();
+            renderCards();
+            checkMergeReady();
+            autoSave();
+        }
+
+        function renderIdols() {
+            const list = document.getElementById('idolsList');
+            
+            if (gameState.idols.length === 0) {
+                list.innerHTML = '<p style="text-align: center; opacity: 0.7; padding: 20px;">Aún no has reclutado ningún idol. ¡Empieza ahora!</p>';
+                return;
+            }
+
+            list.innerHTML = '';
+            gameState.idols.forEach((idol, index) => {
+                const idolEl = document.createElement('div');
+                idolEl.className = 'idol-card fade-in';
+                
+                const avatarContent = idol.image 
+                    ? `<img src="${idol.image}" alt="${idol.name}">`
+                    : idol.icon;
+                
+                const maxExp = idol.level * 100;
+                const expPercent = (idol.exp / maxExp) * 100;
+                
+                idolEl.innerHTML = `
+                    <div class="idol-header">
+                        <div class="idol-avatar">${avatarContent}</div>
+                        <div class="idol-info">
+                            <h3>${idol.name}</h3>
+                            <div class="idol-role">${idol.role}</div>
+                            <div class="idol-level">Nivel ${idol.level}</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${expPercent}%"></div>
+                    </div>
+                    <div style="font-size: 10px; text-align: center; margin-top: 3px; opacity: 0.8;">EXP: ${idol.exp}/${maxExp}</div>
+                    <div class="idol-stats">
+                        <div class="stat">
+                            <div>🎤 Vocal</div>
+                            <div class="stat-value">${idol.stats.vocal}</div>
+                        </div>
+                        <div class="stat">
+                            <div>💃 Dance</div>
+                            <div class="stat-value">${idol.stats.dance}</div>
+                        </div>
+                        <div class="stat">
+                            <div>🎧 Rap</div>
+                            <div class="stat-value">${idol.stats.rap}</div>
+                        </div>
+                        <div class="stat">
+                            <div>✨ Visual</div>
+                            <div class="stat-value">${idol.stats.visual}</div>
+                        </div>
+                    </div>
+                    <button class="button" style="width: 100%; margin-top: 10px; padding: 8px; font-size: 14px;" onclick="trainIdol(${index})">
+                        📚 Entrenar
+                    </button>
+                `;
+                list.appendChild(idolEl);
+            });
+        }
+
+        function trainIdol(idolIndex) {
+            const idol = gameState.idols[idolIndex];
+            
+            if (gameState.talent < 20) {
+                showNotification('❌ No tienes suficiente talento (necesitas 20 🎵)');
+                return;
+            }
+            
+            gameState.talent -= 20;
+            idol.exp += 50;
+            
+            const maxExp = idol.level * 100;
+            if (idol.exp >= maxExp) {
+                idol.exp -= maxExp;
+                idol.level++;
+                
+                idol.stats.vocal += Math.floor(Math.random() * 2) + 1;
+                idol.stats.dance += Math.floor(Math.random() * 2) + 1;
+                idol.stats.rap += Math.floor(Math.random() * 2) + 1;
+                idol.stats.visual += Math.floor(Math.random() * 2) + 1;
+                
+                showNotification(`🎉 ¡${idol.name} subió a nivel ${idol.level}!`);
+                createParticles('⭐');
+            } else {
+                showNotification(`✨ ${idol.name} ganó experiencia`);
+            }
+            
+            updateUI();
+            renderIdols();
+            autoSave();
+        }
+
+        function openRecruitModal() {
+            document.getElementById('recruitModal').classList.add('active');
+        }
+
+        function closeRecruitModal() {
+            document.getElementById('recruitModal').classList.remove('active');
+        }
+
+        function renderRecruitOptions() {
+            const grid = document.getElementById('recruitGrid');
+            grid.innerHTML = '';
+
+            availableTrainees.forEach(trainee => {
+                const recruited = gameState.idols.find(i => i.name === trainee.name);
+                if (recruited) return;
+
+                const card = document.createElement('div');
+                card.className = `recruit-card fade-in ${trainee.rarity || 'inicial'}`;
+                
+                const avatarContent = trainee.image 
+                    ? `<img src="${trainee.image}" alt="${trainee.name}">`
+                    : trainee.icon;
+                
+                const rarityBadge = trainee.rarity ? `<div class="rarity-badge ${trainee.rarity}">${trainee.rarity}</div>` : '';
+                
+                card.innerHTML = `
+                    ${rarityBadge}
+                    <div class="recruit-avatar">${avatarContent}</div>
+                    <div class="recruit-name">${trainee.name}</div>
+                    <div style="font-size: 12px; opacity: 0.8; margin: 5px 0;">${trainee.role}</div>
+                    <div style="font-size: 11px; margin: 5px 0;">Total: ${trainee.stats.vocal + trainee.stats.dance + trainee.stats.rap + trainee.stats.visual}</div>
+                    <div class="recruit-cost">💰 ${trainee.cost}</div>
+                `;
+                card.onclick = () => recruitIdol(trainee);
+                grid.appendChild(card);
+            });
+
+            if (grid.children.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; grid-column: 1/-1; padding: 40px;">¡Has reclutado a todos los idols disponibles! 🎉</p>';
+            }
+        }
+
+        function recruitIdol(trainee) {
+            if (gameState.money < trainee.cost) {
+                showNotification('❌ No tienes suficiente dinero');
+                return;
+            }
+
+            gameState.money -= trainee.cost;
+            gameState.idols.push({ ...trainee });
+            
+            showNotification(`✨ ¡${trainee.name} se ha unido a tu agencia!`);
+            createParticles('🎉');
+            
+            updateUI();
+            renderIdols();
+            renderRecruitOptions();
+            autoSave();
+        }
+
+        function openShopModal() {
+            document.getElementById('shopModal').classList.add('active');
+        }
+
+        function closeShopModal() {
+            document.getElementById('shopModal').classList.remove('active');
+        }
+
+        function renderShop() {
+            const grid = document.getElementById('shopGrid');
+            grid.innerHTML = '';
+
+            shopItems.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'shop-item fade-in';
+                card.innerHTML = `
+                    <div class="item-icon">${item.icon}</div>
+                    <div class="item-name">${item.name}</div>
+                    <div style="font-size: 11px; opacity: 0.7; margin: 8px 0;">${item.description || ''}</div>
+                    <div class="item-cost">💰 ${item.cost}</div>
+                `;
+                card.onclick = () => buyItem(index);
+                grid.appendChild(card);
+            });
+        }
+
+        function buyItem(itemIndex) {
+            const item = shopItems[itemIndex];
+            
+            if (gameState.money < item.cost) {
+                showNotification('❌ No tienes suficiente dinero');
+                return;
+            }
+
+            gameState.money -= item.cost;
+
+            if (item.type === 'pack') {
+                const cardTypes = ['vocal', 'dance', 'rap', 'visual', 'charisma', 'stage'];
+                const icons = { vocal: '🎤', dance: '💃', rap: '🎧', visual: '✨', charisma: '👑', stage: '🎭' };
+                
+                for (let i = 0; i < item.cards; i++) {
+                    const randomType = cardTypes[Math.floor(Math.random() * cardTypes.length)];
+                    const level = item.name.includes('Premium') && Math.random() > 0.5 ? 2 : 1;
+                    
+                    const existingCard = gameState.cards.find(c => c.type === randomType && c.level === level);
+                    if (existingCard) {
+                        existingCard.count++;
+                    } else {
+                        gameState.cards.push({
+                            type: randomType,
+                            level: level,
+                            count: 1,
+                            icon: icons[randomType]
+                        });
+                    }
+                }
+                showNotification(`✨ ¡Compraste ${item.name}!`);
+            } else if (item.type === 'card') {
+                const existingCard = gameState.cards.find(c => c.type === item.cardType && c.level === item.level);
+                if (existingCard) {
+                    existingCard.count++;
+                } else {
+                    gameState.cards.push({
+                        type: item.cardType,
+                        level: item.level,
+                        count: 1,
+                        icon: item.icon
+                    });
+                }
+                showNotification(`✨ ¡Compraste ${item.name}!`);
+            } else if (item.type === 'boost') {
+                if (item.reward.money) gameState.money += item.reward.money;
+                if (item.reward.fame) gameState.fame += item.reward.fame;
+                showNotification(`✨ ¡Boost activado!`);
+            }
+
+            createParticles('💰');
+            updateUI();
+            renderCards();
+            autoSave();
+        }
+
+        function switchSection(section) {
+            currentSection = section;
+            
+            document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+            event.target.closest('.nav-button').classList.add('active');
+            
+            const trainingSection = document.getElementById('trainingSection');
+            
+            if (section === 'training') {
+                trainingSection.innerHTML = `
+                    <h2 class="section-title">🔄 Training Fusion System</h2>
+                    
+                    <div class="merge-slots">
+                        <div class="merge-slot" id="slot1" onclick="selectSlot(1)">
+                            <span style="font-size: 40px; opacity: 0.5;">❓</span>
+                        </div>
+                        <div class="merge-arrow">➕</div>
+                        <div class="merge-slot" id="slot2" onclick="selectSlot(2)">
+                            <span style="font-size: 40px; opacity: 0.5;">❓</span>
+                        </div>
+                        <div class="merge-arrow">➡️</div>
+                        <div class="merge-slot" id="result">
+                            <span style="font-size: 40px; opacity: 0.5;">✨</span>
+                        </div>
+                    </div>
+
+                    <button class="merge-button" id="mergeBtn" onclick="performMerge()" disabled>
+                        🌟 FUSIONAR ENTRENAMIENTO
+                    </button>
+
+                    <div class="inventory">
+                        <h3 class="inventory-title">📦 Cartas de Entrenamiento</h3>
+                        <div class="cards-grid" id="cardsGrid"></div>
+                    </div>
+                `;
+                updateSlots();
+                renderCards();
+                checkMergeReady();
+            } else if (section === 'comeback') {
+                renderComebackSection();
+            } else if (section === 'events') {
+                renderEventsSection();
+            }
+        }
+
+        function renderComebackSection() {
+            const trainingSection = document.getElementById('trainingSection');
+            trainingSection.innerHTML = `
+                <h2 class="section-title">💿 COMEBACK SYSTEM</h2>
+                <p style="text-align: center; margin-bottom: 30px; opacity: 0.9;">Lanza comebacks con tus idols para ganar fama y dinero</p>
+                
+                <div class="comeback-section">
+                    <div class="comeback-card" onclick="openComebackModal('single')">
+                        <div class="comeback-icon">🎵</div>
+                        <div class="comeback-title">Single</div>
+                        <div style="font-size: 14px; opacity: 0.8; margin: 10px 0;">1-2 Idols</div>
+                        <div class="comeback-reward">
+                            <div>💰 +200-400</div>
+                            <div>⭐ +50-100</div>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 12px;">Costo: 100 🎵</div>
+                    </div>
+                    
+                    <div class="comeback-card" onclick="openComebackModal('mini')">
+                        <div class="comeback-icon">💿</div>
+                        <div class="comeback-title">Mini Album</div>
+                        <div style="font-size: 14px; opacity: 0.8; margin: 10px 0;">3-4 Idols</div>
+                        <div class="comeback-reward">
+                            <div>💰 +500-800</div>
+                            <div>⭐ +150-250</div>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 12px;">Costo: 200 🎵</div>
+                    </div>
+                    
+                    <div class="comeback-card" onclick="openComebackModal('full')">
+                        <div class="comeback-icon">💎</div>
+                        <div class="comeback-title">Full Album</div>
+                        <div style="font-size: 14px; opacity: 0.8; margin: 10px 0;">5+ Idols</div>
+                        <div class="comeback-reward">
+                            <div>💰 +1000-1500</div>
+                            <div>⭐ +300-500</div>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 12px;">Costo: 300 🎵</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; padding: 20px; background: rgba(255, 255, 255, 0.1); border-radius: 15px;">
+                    <h3 style="text-align: center; margin-bottom: 15px;">📊 Historial de Comebacks</h3>
+                    <div style="text-align: center; font-size: 18px;">
+                        Total de Comebacks: <span style="color: #FFD700; font-weight: bold;">${gameState.comebackCount}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openComebackModal(type) {
+            const modal = document.getElementById('comebackModal');
+            const selection = document.getElementById('comebackIdolSelection');
+            
+            selectedComebackIdols = [];
+            
+            let minIdols = type === 'single' ? 1 : type === 'mini' ? 3 : 5;
+            let maxIdols = type === 'single' ? 2 : type === 'mini' ? 4 : 10;
+            let cost = type === 'single' ? 100 : type === 'mini' ? 200 : 300;
+            
+            selection.innerHTML = `
+                <div style="margin-bottom: 20px; padding: 15px; background: rgba(0, 0, 0, 0.3); border-radius: 10px;">
+                    <div style="font-weight: bold; margin-bottom: 5px;">${type === 'single' ? 'Single' : type === 'mini' ? 'Mini Album' : 'Full Album'}</div>
+                    <div style="font-size: 14px;">Selecciona ${minIdols}-${maxIdols} idols</div>
+                    <div style="font-size: 14px; color: #FFD700; margin-top: 5px;">Costo: ${cost} 🎵</div>
+                </div>
+                <div class="recruit-grid" id="comebackIdolsGrid"></div>
+            `;
+            
+            modal.dataset.type = type;
+            modal.dataset.minIdols = minIdols;
+            modal.dataset.maxIdols = maxIdols;
+            modal.dataset.cost = cost;
+            
+            renderComebackIdols();
+            modal.classList.add('active');
+        }
+
+        function closeComebackModal() {
+            document.getElementById('comebackModal').classList.remove('active');
+            selectedComebackIdols = [];
+        }
+
+        function renderComebackIdols() {
+            const grid = document.getElementById('comebackIdolsGrid');
+            grid.innerHTML = '';
+            
+            gameState.idols.forEach((idol, index) => {
+                const isSelected = selectedComebackIdols.includes(index);
+                const card = document.createElement('div');
+                card.className = 'recruit-card' + (isSelected ? ' selected' : '');
+                card.style.border = isSelected ? '3px solid #FFD700' : '2px solid transparent';
+                
+                const avatarContent = idol.image 
+                    ? `<img src="${idol.image}" alt="${idol.name}">`
+                    : idol.icon;
+                
+                card.innerHTML = `
+                    <div class="recruit-avatar">${avatarContent}</div>
+                    <div class="recruit-name">${idol.name}</div>
+                    <div style="font-size: 12px; margin: 5px 0;">Nivel ${idol.level}</div>
+                    <div style="font-size: 11px;">Total: ${idol.stats.vocal + idol.stats.dance + idol.stats.rap + idol.stats.visual}</div>
+                `;
+                
+                card.onclick = () => {
+                    const modal = document.getElementById('comebackModal');
+                    const maxIdols = parseInt(modal.dataset.maxIdols);
+                    
+                    if (isSelected) {
+                        selectedComebackIdols = selectedComebackIdols.filter(i => i !== index);
+                    } else {
+                        if (selectedComebackIdols.length < maxIdols) {
+                            selectedComebackIdols.push(index);
+                        } else {
+                            showNotification(`❌ Máximo ${maxIdols} idols para este comeback`);
+                            return;
+                        }
+                    }
+                    renderComebackIdols();
+                };
+                
+                grid.appendChild(card);
+            });
+        }
+
+        function launchComeback() {
+            const modal = document.getElementById('comebackModal');
+            const minIdols = parseInt(modal.dataset.minIdols);
+            const cost = parseInt(modal.dataset.cost);
+            const type = modal.dataset.type;
+            
+            if (selectedComebackIdols.length < minIdols) {
+                showNotification(`❌ Necesitas al menos ${minIdols} idols`);
+                return;
+            }
+            
+            if (gameState.talent < cost) {
+                showNotification(`❌ Necesitas ${cost} 🎵 de talento`);
+                return;
+            }
+            
+            gameState.talent -= cost;
+            
+            let totalPower = 0;
+            selectedComebackIdols.forEach(index => {
+                const idol = gameState.idols[index];
+                totalPower += idol.stats.vocal + idol.stats.dance + idol.stats.rap + idol.stats.visual;
+                
+                idol.exp += 30;
+                const maxExp = idol.level * 100;
+                if (idol.exp >= maxExp) {
+                    idol.exp -= maxExp;
+                    idol.level++;
+                    idol.stats.vocal++;
+                    idol.stats.dance++;
+                    idol.stats.rap++;
+                    idol.stats.visual++;
+                }
+            });
+            
+            let moneyReward, fameReward;
+            if (type === 'single') {
+                moneyReward = 200 + Math.floor(totalPower * 5);
+                fameReward = 50 + Math.floor(totalPower * 2);
+            } else if (type === 'mini') {
+                moneyReward = 500 + Math.floor(totalPower * 8);
+                fameReward = 150 + Math.floor(totalPower * 3);
+            } else {
+                moneyReward = 1000 + Math.floor(totalPower * 10);
+                fameReward = 300 + Math.floor(totalPower * 5);
+            }
+            
+            gameState.money += moneyReward;
+            gameState.fame += fameReward;
+            gameState.comebackCount++;
+            
+            showNotification(`🎉 ¡Comeback exitoso! +${moneyReward}💰 +${fameReward}⭐`);
+            createParticles('🎉');
+            
+            closeComebackModal();
+            updateUI();
+            renderIdols();
+            renderComebackSection();
+            autoSave();
+        }
+
+        function generateEvents() {
+            const eventTypes = [
+                { title: 'Concierto en Vivo', icon: '🎤', reward: { money: 300, fame: 50 }, duration: 120 },
+                { title: 'Fan Meeting', icon: '💕', reward: { money: 200, fame: 80 }, duration: 90 },
+                { title: 'Programa de TV', icon: '📺', reward: { money: 250, fame: 100 }, duration: 60 },
+                { title: 'Sesión de Fotos', icon: '📸', reward: { money: 150, fame: 40 }, duration: 45 }
+            ];
+            
+            gameState.events = [];
+            for (let i = 0; i < 3; i++) {
+                const event = { ...eventTypes[Math.floor(Math.random() * eventTypes.length)] };
+                event.timeLeft = event.duration;
+                event.id = Date.now() + i;
+                gameState.events.push(event);
+            }
+        }
+
+        function updateEvents() {
+            gameState.events.forEach(event => {
+                if (event.timeLeft > 0) {
+                    event.timeLeft--;
+                }
+            });
+            
+            if (currentSection === 'events') {
+                renderEventsSection();
+            }
+        }
+
+        function renderEventsSection() {
+            const trainingSection = document.getElementById('trainingSection');
+            trainingSection.innerHTML = `
+                <h2 class="section-title">🎯 EVENTOS ACTIVOS</h2>
+                <p style="text-align: center; margin-bottom: 30px; opacity: 0.9;">Participa en eventos para ganar recursos</p>
+                <div class="events-list" id="eventsList"></div>
+            `;
+            
+            const eventsList = document.getElementById('eventsList');
+            eventsList.innerHTML = '';
+            
+            gameState.events.forEach((event, index) => {
+                const eventCard = document.createElement('div');
+                eventCard.className = 'event-card fade-in';
+                
+                const minutes = Math.floor(event.timeLeft / 60);
+                const seconds = event.timeLeft % 60;
+                const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                const canParticipate = event.timeLeft > 0 && gameState.idols.length > 0;
+                
+                eventCard.innerHTML = `
+                    <div style="font-size: 40px; margin-right: 20px;">${event.icon}</div>
+                    <div class="event-info">
+                        <div class="event-title">${event.title}</div>
+                        <div class="event-description">
+                            Recompensas: ${event.reward.money}💰 ${event.reward.fame}⭐
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div class="event-timer">${event.timeLeft > 0 ? timeStr : '¡Expirado!'}</div>
+                        <button class="button" style="padding: 10px 20px;" 
+                                onclick="participateEvent(${index})"
+                                ${!canParticipate ? 'disabled' : ''}>
+                            ${event.timeLeft > 0 ? '✨ Participar' : '🔄 Actualizar'}
+                        </button>
+                    </div>
+                `;
+                
+                eventsList.appendChild(eventCard);
+            });
+        }
+
+        function participateEvent(eventIndex) {
+            const event = gameState.events[eventIndex];
+            
+            if (event.timeLeft <= 0) {
+                const eventTypes = [
+                    { title: 'Concierto en Vivo', icon: '🎤', reward: { money: 300, fame: 50 }, duration: 120 },
+                    { title: 'Fan Meeting', icon: '💕', reward: { money: 200, fame: 80 }, duration: 90 },
+                    { title: 'Programa de TV', icon: '📺', reward: { money: 250, fame: 100 }, duration: 60 },
+                    { title: 'Sesión de Fotos', icon: '📸', reward: { money: 150, fame: 40 }, duration: 45 }
+                ];
+                
+                const newEvent = { ...eventTypes[Math.floor(Math.random() * eventTypes.length)] };
+                newEvent.timeLeft = newEvent.duration;
+                newEvent.id = Date.now();
+                gameState.events[eventIndex] = newEvent;
+                
+                showNotification('🔄 ¡Nuevo evento disponible!');
+                renderEventsSection();
+                return;
+            }
+            
+            if (gameState.idols.length === 0) {
+                showNotification('❌ Necesitas al menos 1 idol');
+                return;
+            }
+            
+            gameState.money += event.reward.money;
+            gameState.fame += event.reward.fame;
+            
+            gameState.idols.forEach(idol => {
+                idol.exp += 20;
+                const maxExp = idol.level * 100;
+                if (idol.exp >= maxExp) {
+                    idol.exp -= maxExp;
+                    idol.level++;
+                    idol.stats.vocal++;
+                    idol.stats.dance++;
+                    idol.stats.rap++;
+                    idol.stats.visual++;
+                }
+            });
+            
+            event.timeLeft = 0;
+            
+            showNotification(`✨ ¡Evento completado! +${event.reward.money}💰 +${event.reward.fame}⭐`);
+            createParticles('🎉');
+            
+            updateUI();
+            renderIdols();
+            renderEventsSection();
+            autoSave();
+        }
+
+        function createParticles(emoji) {
+            for (let i = 0; i < 10; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.textContent = emoji;
+                particle.style.left = (Math.random() * window.innerWidth) + 'px';
+                particle.style.top = (Math.random() * window.innerHeight) + 'px';
+                document.body.appendChild(particle);
+                
+                setTimeout(() => particle.remove(), 1000);
+            }
+        }
+
+        function showNotification(message) {
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.textContent = message;
+            document.body.appendChild(notif);
+
+            setTimeout(() => notif.remove(), 3000);
+        }
+
+        function autoSave() {
+            localStorage.setItem('idolAgencyTycoon', JSON.stringify(gameState));
+            showNotification('💾 Partida guardada');
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('idolAgencyTycoon');
+            if (saved) {
+                const loadedState = JSON.parse(saved);
+                gameState = { ...gameState, ...loadedState };
+                gameState.selectedCards = [null, null];
+                
+                if (!gameState.events || gameState.events.length === 0) {
+                    generateEvents();
+                }
+            }
+        }
+
+        setInterval(() => {
+            const income = gameState.idols.length * 10;
+            if (income > 0) {
+                gameState.money += income;
+                updateUI();
+                showNotification(`💰 +${income} de ingresos pasivos`);
+                autoSave();
+            }
+        }, 30000);
+
+        init();
+    </script>
+</body>
+</html>
