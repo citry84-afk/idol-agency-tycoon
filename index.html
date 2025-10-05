@@ -7,7 +7,7 @@
     
     <!-- Firebase Simple SDK -->
     <script src="firebase-simple.js"></script>
-    <!-- Cache bust: v3.7 - Added User Management System with cloud sync -->
+    <!-- Cache bust: v3.8 - Fixed registration form auto-redirect issue -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Google Analytics -->
@@ -5503,11 +5503,18 @@
             updateUserInterface();
         }
 
+        function openUserModalWithForm(formType) {
+            currentUserForm = formType;
+            document.getElementById('userModal').classList.add('active');
+            updateFormDisplay();
+        }
+
         function closeUserModal() {
             document.getElementById('userModal').classList.remove('active');
         }
 
         function showRegisterForm() {
+            console.log('📝 Cambiando a formulario de registro');
             currentUserForm = 'register';
             updateFormDisplay();
         }
@@ -5523,11 +5530,15 @@
         }
 
         function updateFormDisplay() {
+            console.log('🔄 Actualizando formulario:', currentUserForm);
             document.querySelectorAll('.user-form').forEach(form => {
                 form.classList.remove('active');
             });
             if (document.getElementById(currentUserForm + 'Form')) {
                 document.getElementById(currentUserForm + 'Form').classList.add('active');
+                console.log('✅ Formulario activado:', currentUserForm + 'Form');
+            } else {
+                console.log('❌ Formulario no encontrado:', currentUserForm + 'Form');
             }
         }
 
@@ -5570,6 +5581,8 @@
             const password = document.getElementById('registerPassword').value;
             
             try {
+                showNotification('⏳ Creando cuenta...');
+                
                 if (window.signUpWithEmail) {
                     await window.signUpWithEmail(email, password, name);
                     showNotification('✅ ¡Cuenta creada exitosamente!');
@@ -5579,6 +5592,7 @@
                 }
             } catch (error) {
                 showNotification('❌ Error en registro: ' + error.message);
+                // Keep modal open to allow retry
             }
         }
 
@@ -5641,33 +5655,42 @@
                 }
             }
             
-            // Update modal content
-            if (isLoggedIn && userInfo) {
-                document.getElementById('userDisplayName').textContent = userInfo.displayName || 'Usuario';
-                document.getElementById('userEmail').textContent = userInfo.email;
-                
-                if (userInfo.photoURL) {
-                    document.getElementById('userAvatar').src = userInfo.photoURL;
-                    document.getElementById('userInitials').style.display = 'none';
+            // Update modal content only if modal is open
+            const userModal = document.getElementById('userModal');
+            if (userModal && userModal.classList.contains('active')) {
+                if (isLoggedIn && userInfo) {
+                    document.getElementById('userDisplayName').textContent = userInfo.displayName || 'Usuario';
+                    document.getElementById('userEmail').textContent = userInfo.email;
+                    
+                    if (userInfo.photoURL) {
+                        document.getElementById('userAvatar').src = userInfo.photoURL;
+                        document.getElementById('userInitials').style.display = 'none';
+                    } else {
+                        document.getElementById('userAvatar').style.display = 'none';
+                        document.getElementById('userInitials').textContent = 
+                            (userInfo.displayName || 'U').charAt(0).toUpperCase();
+                    }
+                    
+                    // Update game stats if available
+                    if (window.gameState) {
+                        document.getElementById('userFame').textContent = window.gameState.fame || 0;
+                        document.getElementById('userLevel').textContent = window.gameState.agencyLevel || 1;
+                        document.getElementById('userIdols').textContent = window.gameState.idols?.length || 0;
+                    }
+                    
+                    // Only change form if user just logged in
+                    if (currentUserForm !== 'profile') {
+                        currentUserForm = 'profile';
+                        updateFormDisplay();
+                    }
                 } else {
-                    document.getElementById('userAvatar').style.display = 'none';
-                    document.getElementById('userInitials').textContent = 
-                        (userInfo.displayName || 'U').charAt(0).toUpperCase();
+                    // Only change form if user just logged out
+                    if (currentUserForm !== 'login' && currentUserForm !== 'register' && currentUserForm !== 'guest') {
+                        currentUserForm = 'login';
+                        updateFormDisplay();
+                    }
                 }
-                
-                // Update game stats if available
-                if (window.gameState) {
-                    document.getElementById('userFame').textContent = window.gameState.fame || 0;
-                    document.getElementById('userLevel').textContent = window.gameState.agencyLevel || 1;
-                    document.getElementById('userIdols').textContent = window.gameState.idols?.length || 0;
-                }
-                
-                currentUserForm = 'profile';
-            } else {
-                currentUserForm = 'login';
             }
-            
-            updateFormDisplay();
         }
 
         // Update UI periodically
