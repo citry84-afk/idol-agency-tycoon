@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎤 Idol Agency Tycoon v2.0</title>
-    <!-- Cache bust: v3.6 - Added Daily Login Rewards system for retention -->
+    <title>🎤 Idol Agency Tycoon v2.0 - Gestión de Usuarios</title>
+    
+    <!-- Firebase Simple SDK -->
+    <script src="firebase-simple.js"></script>
+    <!-- Cache bust: v3.7 - Added User Management System with cloud sync -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Google Analytics -->
@@ -1782,6 +1785,27 @@
         .settings-button:hover {
             transform: scale(1.05);
             background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .user-resource-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-weight: bold;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .user-resource-btn:hover {
+            transform: scale(1.05);
+            background: rgba(255, 215, 0, 0.2);
+            border-color: #FFD700;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
+        }
             box-shadow: 0 5px 20px rgba(255, 255, 255, 0.2);
         }
 
@@ -2482,6 +2506,10 @@
                 <div class="resource">
                     <span class="resource-icon">🎵</span>
                     <span id="talent">50</span>
+                </div>
+                <div class="user-resource-btn" onclick="openUserModal()" title="Gestionar cuenta">
+                    <span class="resource-icon">👤</span>
+                    <span id="userStatus">Invitado</span>
                 </div>
                 <div class="settings-button" onclick="openSettingsModal()" data-tooltip="Ajustes">
                     <span class="resource-icon">⚙️</span>
@@ -4889,36 +4917,78 @@
         }
 
         function autoSave() {
+            // Guardar localmente
             localStorage.setItem('idolAgencyTycoon', JSON.stringify(gameState));
-            showNotification('💾 Partida guardada');
+            
+            // Si hay usuario logueado, guardar en la nube también
+            if (window.idolUserManager && window.idolUserManager.isUserLoggedIn()) {
+                window.idolUserManager.saveGameData(gameState).then(() => {
+                    showNotification('☁️ Partida guardada en la nube');
+                }).catch(() => {
+                    showNotification('💾 Partida guardada localmente');
+                });
+            } else {
+                showNotification('💾 Partida guardada localmente');
+            }
         }
 
         function loadGame() {
+            // Intentar cargar desde la nube primero si hay usuario logueado
+            if (window.idolUserManager && window.idolUserManager.isUserLoggedIn()) {
+                window.idolUserManager.loadUserGameData().then((cloudData) => {
+                    if (cloudData) {
+                        gameState = { ...gameState, ...cloudData };
+                        gameState.selectedCards = [null, null];
+                        initializeStats();
+                        if (!gameState.events || gameState.events.length === 0) {
+                            generateEvents();
+                        }
+                        updateUI();
+                        showNotification('☁️ Partida cargada desde la nube');
+                    } else {
+                        // Si no hay datos en la nube, cargar localmente
+                        loadLocalGame();
+                    }
+                }).catch(() => {
+                    // Si falla la carga de la nube, cargar localmente
+                    loadLocalGame();
+                });
+            } else {
+                // Si no hay usuario logueado, cargar localmente
+                loadLocalGame();
+            }
+        }
+        
+        function loadLocalGame() {
             const saved = localStorage.getItem('idolAgencyTycoon');
             if (saved) {
                 const loadedState = JSON.parse(saved);
                 gameState = { ...gameState, ...loadedState };
                 gameState.selectedCards = [null, null];
-                
-                // Initialize stats if not present
-                if (!gameState.stats) {
-                    gameState.stats = {
-                        playTimeStart: Date.now(),
-                        playTimeTotal: 0,
-                        idolsRecruited: 0,
-                        comebacksLaunched: 0,
-                        mergesPerformed: 0,
-                        totalMoneyEarned: 0,
-                        totalFameEarned: 0
-                    };
-                } else {
-                    // Update play time tracking
-                    gameState.stats.playTimeStart = Date.now();
-                }
-                
+                initializeStats();
                 if (!gameState.events || gameState.events.length === 0) {
                     generateEvents();
                 }
+                updateUI();
+                showNotification('💾 Partida cargada localmente');
+            }
+        }
+        
+        function initializeStats() {
+            // Initialize stats if not present
+            if (!gameState.stats) {
+                gameState.stats = {
+                    playTimeStart: Date.now(),
+                    playTimeTotal: 0,
+                    idolsRecruited: 0,
+                    comebacksLaunched: 0,
+                    mergesPerformed: 0,
+                    totalMoneyEarned: 0,
+                    totalFameEarned: 0
+                };
+            } else {
+                // Update play time tracking
+                gameState.stats.playTimeStart = Date.now();
             }
         }
 
@@ -4948,6 +5018,660 @@
         });
 
         init();
+    </script>
+    <!-- User Management Interface -->
+    <div id="userModal" class="user-modal">
+        <div class="user-modal-content">
+            <div class="user-modal-header">
+                <span class="close-user-modal" onclick="closeUserModal()">&times;</span>
+                <div class="user-modal-title">
+                    <div class="modal-icon">🎤</div>
+                    <h2>Gestiona tu Agencia</h2>
+                    <p>Sincroniza tu progreso entre todos tus dispositivos</p>
+                </div>
+            </div>
+            
+            <div class="user-modal-body">
+                <!-- Login Form -->
+                <div id="loginForm" class="user-form active">
+                    <h3>Iniciar Sesión</h3>
+                    
+                    <button class="social-login-btn google-btn" onclick="handleGoogleLogin()">
+                        <span class="social-icon">🔍</span>
+                        Continuar con Google
+                    </button>
+                    
+                    <div class="divider">
+                        <span>o</span>
+                    </div>
+                    
+                    <form onsubmit="handleEmailLogin(event)">
+                        <div class="input-group">
+                            <input type="email" id="loginEmail" placeholder="Email" required>
+                        </div>
+                        <div class="input-group">
+                            <input type="password" id="loginPassword" placeholder="Contraseña" required>
+                        </div>
+                        <button type="submit" class="login-btn">Iniciar Sesión</button>
+                    </form>
+                    
+                    <div class="form-footer">
+                        <p>¿No tienes cuenta? <a href="#" onclick="showRegisterForm()">Regístrate aquí</a></p>
+                        <p><a href="#" onclick="showGuestMode()">Continuar como invitado</a></p>
+                    </div>
+                </div>
+                
+                <!-- Register Form -->
+                <div id="registerForm" class="user-form">
+                    <h3>Crear Cuenta</h3>
+                    
+                    <button class="social-login-btn google-btn" onclick="handleGoogleLogin()">
+                        <span class="social-icon">🔍</span>
+                        Registrarse con Google
+                    </button>
+                    
+                    <div class="divider">
+                        <span>o</span>
+                    </div>
+                    
+                    <form onsubmit="handleEmailRegister(event)">
+                        <div class="input-group">
+                            <input type="text" id="registerName" placeholder="Nombre de usuario" required>
+                        </div>
+                        <div class="input-group">
+                            <input type="email" id="registerEmail" placeholder="Email" required>
+                        </div>
+                        <div class="input-group">
+                            <input type="password" id="registerPassword" placeholder="Contraseña" required minlength="6">
+                        </div>
+                        <button type="submit" class="login-btn">Crear Cuenta</button>
+                    </form>
+                    
+                    <div class="form-footer">
+                        <p>¿Ya tienes cuenta? <a href="#" onclick="showLoginForm()">Inicia sesión aquí</a></p>
+                        <p><a href="#" onclick="showGuestMode()">Continuar como invitado</a></p>
+                    </div>
+                </div>
+                
+                <!-- User Profile -->
+                <div id="userProfile" class="user-form">
+                    <h3>Mi Perfil</h3>
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <img id="userAvatar" src="" alt="Avatar">
+                            <div id="userInitials" class="user-initials"></div>
+                        </div>
+                        <div class="user-details">
+                            <h4 id="userDisplayName">Usuario</h4>
+                            <p id="userEmail">email@ejemplo.com</p>
+                            <div class="user-stats">
+                                <span class="stat-item">
+                                    <strong id="userFame">0</strong> ⭐ Fama
+                                </span>
+                                <span class="stat-item">
+                                    <strong id="userLevel">1</strong> 🏢 Nivel
+                                </span>
+                                <span class="stat-item">
+                                    <strong id="userIdols">0</strong> 👥 Idols
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="user-actions">
+                        <button class="action-btn sync-btn" onclick="syncGameData()">
+                            <span>🔄</span> Sincronizar Ahora
+                        </button>
+                        <button class="action-btn migrate-btn" onclick="migrateLocalData()">
+                            <span>📤</span> Migrar Datos Locales
+                        </button>
+                        <button class="action-btn logout-btn" onclick="handleLogout()">
+                            <span>🚪</span> Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Guest Mode -->
+                <div id="guestMode" class="user-form">
+                    <h3>Modo Invitado</h3>
+                    <div class="guest-info">
+                        <div class="guest-icon">👤</div>
+                        <p>Juega sin crear cuenta. Tu progreso se guardará solo en este dispositivo.</p>
+                    </div>
+                    
+                    <div class="guest-actions">
+                        <button class="action-btn create-account-btn" onclick="showRegisterForm()">
+                            <span>✨</span> Crear Cuenta Gratis
+                        </button>
+                        <button class="action-btn continue-guest-btn" onclick="continueAsGuest()">
+                            <span>🎮</span> Continuar Como Invitado
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User Interface Styles -->
+    <style>
+        /* User Management Styles */
+        .user-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-modal.active {
+            display: flex;
+        }
+
+        .user-modal-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 0;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .user-modal-header {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            text-align: center;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .close-user-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 30px;
+            cursor: pointer;
+            color: #fff;
+            transition: all 0.3s;
+        }
+
+        .close-user-modal:hover {
+            color: #FFD700;
+            transform: scale(1.2);
+        }
+
+        .modal-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+            animation: modal-icon-pulse 2s infinite;
+        }
+
+        .user-modal-title h2 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #FFD700;
+        }
+
+        .user-modal-title p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .user-modal-body {
+            padding: 30px;
+        }
+
+        .user-form {
+            display: none;
+        }
+
+        .user-form.active {
+            display: block;
+        }
+
+        .user-form h3 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #FFD700;
+        }
+
+        .social-login-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .google-btn {
+            background: #fff;
+            color: #333;
+        }
+
+        .google-btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+
+        .social-icon {
+            font-size: 20px;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .divider span {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 0 15px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #FFD700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .form-footer p {
+            margin: 10px 0;
+            opacity: 0.9;
+        }
+
+        .form-footer a {
+            color: #FFD700;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* User Profile Styles */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+        }
+
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 3px solid #FFD700;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-initials {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .user-details h4 {
+            font-size: 20px;
+            margin-bottom: 5px;
+            color: #FFD700;
+        }
+
+        .user-details p {
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+
+        .user-stats {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .user-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .action-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: #FFD700;
+            transform: translateY(-2px);
+        }
+
+        .sync-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+        }
+
+        .migrate-btn {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+        }
+
+        .logout-btn {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+        }
+
+        /* Guest Mode Styles */
+        .guest-info {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .guest-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .guest-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .create-account-btn {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+        }
+
+        .continue-guest-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        @keyframes modal-icon-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+    </style>
+    
+    <!-- User Management JavaScript -->
+    <script>
+        // User Management Functions
+        let currentUserForm = 'login';
+
+        function openUserModal() {
+            document.getElementById('userModal').classList.add('active');
+            updateUserInterface();
+        }
+
+        function closeUserModal() {
+            document.getElementById('userModal').classList.remove('active');
+        }
+
+        function showRegisterForm() {
+            currentUserForm = 'register';
+            updateFormDisplay();
+        }
+
+        function showGuestMode() {
+            currentUserForm = 'guest';
+            updateFormDisplay();
+        }
+
+        function showLoginForm() {
+            currentUserForm = 'login';
+            updateFormDisplay();
+        }
+
+        function updateFormDisplay() {
+            document.querySelectorAll('.user-form').forEach(form => {
+                form.classList.remove('active');
+            });
+            if (document.getElementById(currentUserForm + 'Form')) {
+                document.getElementById(currentUserForm + 'Form').classList.add('active');
+            }
+        }
+
+        async function handleGoogleLogin() {
+            try {
+                if (window.signInWithGoogle) {
+                    await window.signInWithGoogle();
+                    showNotification('✅ ¡Login exitoso!');
+                    closeUserModal();
+                } else {
+                    showNotification('⚠️ Sistema de usuarios no disponible');
+                }
+            } catch (error) {
+                showNotification('❌ Error en login: ' + error.message);
+            }
+        }
+
+        async function handleEmailLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                if (window.signInWithEmail) {
+                    await window.signInWithEmail(email, password);
+                    showNotification('✅ ¡Login exitoso!');
+                    closeUserModal();
+                } else {
+                    showNotification('⚠️ Sistema de usuarios no disponible');
+                }
+            } catch (error) {
+                showNotification('❌ Error en login: ' + error.message);
+            }
+        }
+
+        async function handleEmailRegister(event) {
+            event.preventDefault();
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            
+            try {
+                if (window.signUpWithEmail) {
+                    await window.signUpWithEmail(email, password, name);
+                    showNotification('✅ ¡Cuenta creada exitosamente!');
+                    closeUserModal();
+                } else {
+                    showNotification('⚠️ Sistema de usuarios no disponible');
+                }
+            } catch (error) {
+                showNotification('❌ Error en registro: ' + error.message);
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                if (window.signOut) {
+                    await window.signOut();
+                    showNotification('✅ Sesión cerrada');
+                    closeUserModal();
+                } else {
+                    showNotification('⚠️ Sistema de usuarios no disponible');
+                }
+            } catch (error) {
+                showNotification('❌ Error cerrando sesión: ' + error.message);
+            }
+        }
+
+        async function syncGameData() {
+            try {
+                if (window.saveToCloud) {
+                    await window.saveToCloud();
+                    showNotification('✅ ¡Datos sincronizados!');
+                } else {
+                    showNotification('⚠️ Sistema de usuarios no disponible');
+                }
+            } catch (error) {
+                showNotification('❌ Error sincronizando: ' + error.message);
+            }
+        }
+
+        async function migrateLocalData() {
+            try {
+                if (window.migrateLocalData) {
+                    await window.migrateLocalData();
+                    showNotification('✅ ¡Datos migrados exitosamente!');
+                } else {
+                    showNotification('⚠️ Sistema de usuarios no disponible');
+                }
+            } catch (error) {
+                showNotification('❌ Error migrando datos: ' + error.message);
+            }
+        }
+
+        function continueAsGuest() {
+            showNotification('🎮 Continuando como invitado');
+            closeUserModal();
+        }
+
+        function updateUserInterface() {
+            const isLoggedIn = window.idolUserManager && window.idolUserManager.isUserLoggedIn();
+            const userInfo = window.idolUserManager && window.idolUserManager.getUserInfo();
+            
+            // Update user status in header
+            const userStatus = document.getElementById('userStatus');
+            if (userStatus) {
+                if (isLoggedIn && userInfo) {
+                    userStatus.textContent = userInfo.displayName || 'Usuario';
+                } else {
+                    userStatus.textContent = 'Invitado';
+                }
+            }
+            
+            // Update modal content
+            if (isLoggedIn && userInfo) {
+                document.getElementById('userDisplayName').textContent = userInfo.displayName || 'Usuario';
+                document.getElementById('userEmail').textContent = userInfo.email;
+                
+                if (userInfo.photoURL) {
+                    document.getElementById('userAvatar').src = userInfo.photoURL;
+                    document.getElementById('userInitials').style.display = 'none';
+                } else {
+                    document.getElementById('userAvatar').style.display = 'none';
+                    document.getElementById('userInitials').textContent = 
+                        (userInfo.displayName || 'U').charAt(0).toUpperCase();
+                }
+                
+                // Update game stats if available
+                if (window.gameState) {
+                    document.getElementById('userFame').textContent = window.gameState.fame || 0;
+                    document.getElementById('userLevel').textContent = window.gameState.agencyLevel || 1;
+                    document.getElementById('userIdols').textContent = window.gameState.idols?.length || 0;
+                }
+                
+                currentUserForm = 'profile';
+            } else {
+                currentUserForm = 'login';
+            }
+            
+            updateFormDisplay();
+        }
+
+        // Update UI periodically
+        setInterval(updateUserInterface, 5000);
     </script>
 </body>
 </html>
