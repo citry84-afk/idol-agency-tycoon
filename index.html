@@ -7,7 +7,7 @@
     
     <!-- Firebase Simple SDK -->
     <script src="firebase-simple.js"></script>
-    <!-- Cache bust: v3.8 - Fixed registration form auto-redirect issue -->
+    <!-- Cache bust: v3.9 - Mobile UX optimization for user management -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Google Analytics -->
@@ -1806,6 +1806,26 @@
             border-color: #FFD700;
             box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
         }
+        
+        .mobile-login-btn {
+            display: none; /* Hidden by default */
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-weight: bold;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .mobile-login-btn:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.3);
+            border-color: #FFD700;
+            box-shadow: 0 5px 20px rgba(255, 255, 255, 0.3);
+        }
             box-shadow: 0 5px 20px rgba(255, 255, 255, 0.2);
         }
 
@@ -2510,6 +2530,11 @@
                 <div class="user-resource-btn" onclick="openUserModal()" title="Gestionar cuenta">
                     <span class="resource-icon">👤</span>
                     <span id="userStatus">Invitado</span>
+                </div>
+                <!-- Mobile Quick Login Button -->
+                <div class="mobile-login-btn" onclick="quickMobileLogin()" title="Login rápido">
+                    <span class="resource-icon">🔍</span>
+                    <span>Google</span>
                 </div>
                 <div class="settings-button" onclick="openSettingsModal()" data-tooltip="Ajustes">
                     <span class="resource-icon">⚙️</span>
@@ -5491,12 +5516,150 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
         }
+        
+        /* Mobile Responsive for User Modal */
+        @media (max-width: 768px) {
+            .user-modal {
+                padding: 10px;
+            }
+            
+            .user-modal-content {
+                width: 100%;
+                max-width: none;
+                height: 100vh;
+                max-height: none;
+                border-radius: 0;
+                margin: 0;
+                padding: 0;
+            }
+            
+            .user-modal-header {
+                padding: 20px;
+                border-radius: 0;
+            }
+            
+            .user-modal-body {
+                padding: 20px;
+                max-height: calc(100vh - 120px);
+                overflow-y: auto;
+            }
+            
+            .user-status-bar {
+                top: 10px;
+                right: 10px;
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+            
+            .user-resource-btn {
+                padding: 8px 12px;
+                font-size: 12px;
+                min-height: 44px; /* Touch-friendly */
+                display: none; /* Hide on mobile */
+            }
+            
+            .mobile-login-btn {
+                display: flex; /* Show on mobile */
+                padding: 8px 12px;
+                font-size: 12px;
+                min-height: 44px; /* Touch-friendly */
+            }
+            
+            .user-actions {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .action-btn {
+                min-height: 44px; /* Touch-friendly */
+                font-size: 16px;
+            }
+            
+            .user-stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .stat-item {
+                padding: 12px;
+                font-size: 16px;
+            }
+            
+            .input-group input {
+                min-height: 44px; /* Touch-friendly */
+                font-size: 16px;
+            }
+            
+            .social-login-btn, .login-btn {
+                min-height: 48px; /* Touch-friendly */
+                font-size: 16px;
+            }
+            
+            .user-info {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .user-avatar {
+                width: 100px;
+                height: 100px;
+                margin: 0 auto;
+            }
+            
+            .close-user-modal {
+                top: 15px;
+                right: 15px;
+                font-size: 24px;
+                padding: 10px;
+                background: rgba(0, 0, 0, 0.5);
+                border-radius: 50%;
+                width: 44px;
+                height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .modal-icon {
+                font-size: 40px;
+            }
+            
+            .user-modal-title h2 {
+                font-size: 24px;
+            }
+            
+            .user-form h3 {
+                font-size: 20px;
+            }
+            
+            .form-footer {
+                margin-top: 30px;
+            }
+            
+            .form-footer p {
+                font-size: 14px;
+                margin: 15px 0;
+            }
+            
+            .guest-info p {
+                font-size: 16px;
+                line-height: 1.5;
+            }
+        }
     </style>
     
     <!-- User Management JavaScript -->
     <script>
         // User Management Functions
         let currentUserForm = 'login';
+        let isMobile = window.innerWidth <= 768;
+        
+        // Detect mobile on resize
+        window.addEventListener('resize', () => {
+            isMobile = window.innerWidth <= 768;
+        });
 
         function openUserModal() {
             document.getElementById('userModal').classList.add('active');
@@ -5509,9 +5672,43 @@
             updateFormDisplay();
         }
 
+        // Quick mobile login function
+        async function quickMobileLogin() {
+            try {
+                showNotification('🔍 Iniciando sesión rápida...');
+                if (window.signInWithGoogle) {
+                    await window.signInWithGoogle();
+                    showNotification('✅ ¡Login exitoso!');
+                } else {
+                    showNotification('⚠️ Sistema no disponible');
+                }
+            } catch (error) {
+                showNotification('❌ Error: ' + error.message);
+                // Fallback to full modal on error
+                openUserModal();
+            }
+        }
+
         function closeUserModal() {
             document.getElementById('userModal').classList.remove('active');
         }
+
+        // Close modal when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const userModal = document.getElementById('userModal');
+            if (userModal && userModal.classList.contains('active') && isMobile) {
+                if (event.target === userModal) {
+                    closeUserModal();
+                }
+            }
+        });
+
+        // Close modal with escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeUserModal();
+            }
+        });
 
         function showRegisterForm() {
             console.log('📝 Cambiando a formulario de registro');
