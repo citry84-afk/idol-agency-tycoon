@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎤 Idol Agency Tycoon v2.0</title>
-    <!-- Cache bust: v3.5 - Fixed AdSense Auto Ads configuration -->
+    <!-- Cache bust: v3.6 - Added Daily Login Rewards system for retention -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Google Analytics -->
@@ -2036,6 +2036,327 @@
             margin-top: 2px;
         }
 
+        /* Daily Login Rewards Styles */
+        .daily-rewards-content {
+            max-width: 500px;
+            text-align: center;
+            position: relative;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            border: 2px solid transparent;
+            border-image: linear-gradient(45deg, #FFD700, #FFA500, #FF69B4, #8A2BE2) 1;
+            animation: gradient-border 3s ease infinite;
+        }
+
+        .daily-rewards-skip {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 18px;
+            opacity: 0.7;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .daily-rewards-skip:hover {
+            opacity: 1;
+        }
+
+        .daily-rewards-header {
+            margin-bottom: 20px;
+        }
+
+        .daily-rewards-title {
+            font-size: 28px;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: title-glow 2s ease-in-out infinite alternate;
+        }
+
+        .daily-streak-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 16px;
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .streak-fire {
+            font-size: 20px;
+            animation: fire-flicker 1.5s ease-in-out infinite;
+        }
+
+        .daily-day-display {
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .day-number {
+            font-size: 80px;
+            font-weight: 800;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            animation: number-bounce 1s ease;
+        }
+
+        .day-label {
+            font-size: 20px;
+            font-weight: bold;
+            color: #FFD700;
+            margin-top: -10px;
+        }
+
+        .daily-progress-tracker {
+            margin: 30px 0;
+        }
+
+        .progress-circles {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .progress-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .progress-circle.completed {
+            background: linear-gradient(45deg, #00FF00, #32CD32);
+            border-color: #00FF00;
+            animation: completed-glow 2s ease-in-out infinite;
+        }
+
+        .progress-circle.current {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border-color: #FFD700;
+            animation: current-pulse 1.5s ease-in-out infinite;
+            transform: scale(1.1);
+        }
+
+        .progress-circle.future {
+            opacity: 0.4;
+        }
+
+        .daily-rewards-showcase {
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(255, 215, 0, 0.1);
+            border-radius: 15px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .reward-items {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .reward-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: reward-pop 0.6s ease forwards;
+            opacity: 0;
+            transform: scale(0);
+        }
+
+        .reward-item:nth-child(1) { animation-delay: 0.2s; }
+        .reward-item:nth-child(2) { animation-delay: 0.4s; }
+        .reward-item:nth-child(3) { animation-delay: 0.6s; }
+
+        .reward-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        .reward-amount {
+            font-size: 18px;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .daily-claim-button {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border: none;
+            border-radius: 15px;
+            padding: 20px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin: 30px 0;
+            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.4);
+            animation: claim-pulse 2s ease-in-out infinite;
+        }
+
+        .daily-claim-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 40px rgba(255, 215, 0, 0.6);
+        }
+
+        .daily-claim-button:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .claim-sparkle {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 16px;
+            animation: sparkle-rotate 2s linear infinite;
+        }
+
+        .tomorrow-preview {
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .tomorrow-label {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+
+        .tomorrow-rewards {
+            font-size: 16px;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .daily-confetti {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: linear-gradient(45deg, #FFD700, #FFA500, #FF69B4, #8A2BE2);
+            animation: confetti-fall 3s ease-out forwards;
+        }
+
+        /* Daily Rewards Animations */
+        @keyframes gradient-border {
+            0%, 100% { border-image-source: linear-gradient(45deg, #FFD700, #FFA500, #FF69B4, #8A2BE2); }
+            25% { border-image-source: linear-gradient(45deg, #FFA500, #FF69B4, #8A2BE2, #FFD700); }
+            50% { border-image-source: linear-gradient(45deg, #FF69B4, #8A2BE2, #FFD700, #FFA500); }
+            75% { border-image-source: linear-gradient(45deg, #8A2BE2, #FFD700, #FFA500, #FF69B4); }
+        }
+
+        @keyframes title-glow {
+            0% { text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+            100% { text-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+        }
+
+        @keyframes fire-flicker {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(-5deg); }
+            50% { transform: scale(0.9) rotate(5deg); }
+            75% { transform: scale(1.05) rotate(-2deg); }
+        }
+
+        @keyframes number-bounce {
+            0% { transform: scale(0) rotate(-180deg); }
+            50% { transform: scale(1.2) rotate(-90deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        @keyframes completed-glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(0, 255, 0, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(0, 255, 0, 0.8); }
+        }
+
+        @keyframes current-pulse {
+            0%, 100% { transform: scale(1.1); }
+            50% { transform: scale(1.3); }
+        }
+
+        @keyframes reward-pop {
+            0% { opacity: 0; transform: scale(0) rotate(-180deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+
+        @keyframes claim-pulse {
+            0%, 100% { box-shadow: 0 8px 30px rgba(255, 215, 0, 0.4); }
+            50% { box-shadow: 0 12px 40px rgba(255, 215, 0, 0.7); }
+        }
+
+        @keyframes sparkle-rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(500px) rotate(360deg); opacity: 0; }
+        }
+
+        /* Mobile Responsive for Daily Rewards */
+        @media (max-width: 768px) {
+            .daily-rewards-content {
+                max-width: 90vw;
+                padding: 20px;
+            }
+            
+            .day-number {
+                font-size: 60px;
+            }
+            
+            .progress-circles {
+                gap: 10px;
+            }
+            
+            .progress-circle {
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
+            }
+            
+            .daily-claim-button {
+                padding: 15px 30px;
+                font-size: 18px;
+                min-height: 44px;
+            }
+            
+            .reward-items {
+                gap: 15px;
+            }
+            
+            .reward-icon {
+                font-size: 30px;
+            }
+        }
+
         /* Celebration Effects */
         .tutorial-celebration {
             position: fixed;
@@ -2263,6 +2584,58 @@
         <script>
              (adsbygoogle = window.adsbygoogle || []).push({});
         </script>
+    </div>
+
+    <!-- Daily Login Rewards Modal -->
+    <div class="modal" id="dailyRewardsModal">
+        <div class="modal-content daily-rewards-content">
+            <span class="close-modal daily-rewards-skip" onclick="skipDailyReward()" title="Saltar">✕</span>
+            
+            <div class="daily-rewards-header">
+                <h2 class="daily-rewards-title">DAILY LOGIN REWARD! 🎁</h2>
+                <div class="daily-streak-info">
+                    <span class="streak-fire">🔥</span>
+                    <span class="streak-text">Streak: <span id="currentStreak">1</span> days</span>
+                </div>
+            </div>
+            
+            <div class="daily-day-display">
+                <div class="day-number" id="dayNumber">1</div>
+                <div class="day-label">DAY</div>
+            </div>
+            
+            <div class="daily-progress-tracker">
+                <div class="progress-circles">
+                    <div class="progress-circle" data-day="1">✅</div>
+                    <div class="progress-circle" data-day="2">⭕</div>
+                    <div class="progress-circle" data-day="3">⭕</div>
+                    <div class="progress-circle" data-day="4">⭕</div>
+                    <div class="progress-circle" data-day="5">⭕</div>
+                    <div class="progress-circle" data-day="6">⭕</div>
+                    <div class="progress-circle" data-day="7">⭕</div>
+                </div>
+            </div>
+            
+            <div class="daily-rewards-showcase">
+                <div class="reward-items" id="rewardItems">
+                    <!-- Rewards will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <button class="daily-claim-button" id="claimRewardBtn" onclick="claimDailyReward()">
+                <span class="claim-text">🎁 CLAIM REWARD</span>
+                <span class="claim-sparkle">✨</span>
+            </button>
+            
+            <div class="tomorrow-preview">
+                <div class="tomorrow-label">Tomorrow's reward:</div>
+                <div class="tomorrow-rewards" id="tomorrowRewards">
+                    <!-- Tomorrow's rewards will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="daily-confetti" id="dailyConfetti"></div>
+        </div>
     </div>
 
     <!-- Share Modal -->
@@ -2515,6 +2888,18 @@
                         <div class="settings-stat-value" id="statsTotalFame">0</div>
                         <div class="settings-stat-label">Fama total ganada</div>
                     </div>
+                    <div class="settings-stat">
+                        <div class="settings-stat-value" id="totalLogins">0</div>
+                        <div class="settings-stat-label">Logins totales</div>
+                    </div>
+                    <div class="settings-stat">
+                        <div class="settings-stat-value" id="currentStreakDisplay">0</div>
+                        <div class="settings-stat-label">Racha actual</div>
+                    </div>
+                    <div class="settings-stat">
+                        <div class="settings-stat-value" id="bestStreak">0</div>
+                        <div class="settings-stat-label">Mejor racha</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2692,6 +3077,10 @@
                 console.log('🎮 Returning user - skipping tutorial');
                 // Skip welcome screen and go directly to game
                 startGame();
+                // Check for daily reward after game loads
+                setTimeout(() => {
+                    checkDailyReward();
+                }, 500);
             }
         }
 
@@ -3107,6 +3496,11 @@
                 // Track tutorial completion
                 trackTutorialComplete();
                 
+                // Check for daily reward after tutorial completion
+                setTimeout(() => {
+                    checkDailyReward();
+                }, 1000);
+                
                 console.log('✅ Tutorial completed successfully');
                 
                 // Add extra check to prevent restart
@@ -3234,6 +3628,15 @@
             document.getElementById('statsMergesPerformed').textContent = gameState.stats.mergesPerformed;
             document.getElementById('statsTotalMoney').textContent = gameState.stats.totalMoneyEarned.toLocaleString();
             document.getElementById('statsTotalFame').textContent = gameState.stats.totalFameEarned.toLocaleString();
+            
+            // Daily rewards stats
+            const totalLogins = parseInt(localStorage.getItem('total_logins') || '0');
+            const currentStreak = parseInt(localStorage.getItem('login_streak') || '0');
+            const bestStreak = parseInt(localStorage.getItem('best_streak') || '0');
+            
+            document.getElementById('totalLogins').textContent = totalLogins;
+            document.getElementById('currentStreakDisplay').textContent = currentStreak;
+            document.getElementById('bestStreak').textContent = bestStreak;
         }
 
         function manualSave() {
@@ -3354,6 +3757,278 @@
         function downloadProgressImage() {
             // Create a simple progress card image (placeholder)
             showNotification('📸 Función de imagen en desarrollo - ¡próximamente!');
+        }
+
+        // Daily Login Rewards System
+        const dailyRewards = {
+            rewards: [
+                { day: 1, money: 100, talent: 0, cards: 0 },
+                { day: 2, money: 150, talent: 25, cards: 0 },
+                { day: 3, money: 200, talent: 40, cards: 0 },
+                { day: 4, money: 300, talent: 60, cards: 0 },
+                { day: 5, money: 500, talent: 100, cards: 0 },
+                { day: 6, money: 700, talent: 150, cards: 0 },
+                { day: 7, money: 1500, talent: 300, cards: 1, cardLevel: 2 }
+            ],
+            
+            getReward(day, streak) {
+                const baseReward = this.rewards[(day - 1) % 7];
+                const cycle = Math.floor((day - 1) / 7);
+                const bonus = Math.pow(1.2, cycle); // 20% bonus per cycle
+                
+                return {
+                    money: Math.floor(baseReward.money * bonus),
+                    talent: Math.floor(baseReward.talent * bonus),
+                    cards: baseReward.cards,
+                    cardLevel: baseReward.cardLevel || 1
+                };
+            },
+            
+            getTomorrowReward(day) {
+                return this.getReward(day + 1, 1);
+            }
+        };
+
+        function checkDailyReward() {
+            const today = new Date().toDateString();
+            const lastLogin = localStorage.getItem('last_login_date');
+            const streak = parseInt(localStorage.getItem('login_streak') || '0');
+            const totalLogins = parseInt(localStorage.getItem('total_logins') || '0');
+            
+            console.log('🎁 Checking daily reward:', { today, lastLogin, streak, totalLogins });
+            
+            if (lastLogin !== today) {
+                // Check if within grace period (12 hours)
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const gracePeriod = new Date();
+                gracePeriod.setHours(gracePeriod.getHours() - 12);
+                
+                let newStreak;
+                if (lastLogin && new Date(lastLogin) >= gracePeriod) {
+                    // Within grace period, increment streak
+                    newStreak = streak + 1;
+                    console.log('✅ Within grace period, streak continues:', newStreak);
+                } else {
+                    // Missed day, reset to 1
+                    newStreak = 1;
+                    console.log('❌ Missed day, streak reset to:', newStreak);
+                }
+                
+                // Show reward modal
+                setTimeout(() => {
+                    showDailyRewardModal(newStreak);
+                }, 1000); // Show after welcome screen
+                
+            // Update localStorage
+            localStorage.setItem('last_login_date', today);
+            localStorage.setItem('login_streak', newStreak.toString());
+            localStorage.setItem('total_logins', (totalLogins + 1).toString());
+            
+            // Update best streak
+            const currentBestStreak = parseInt(localStorage.getItem('best_streak') || '0');
+            if (newStreak > currentBestStreak) {
+                localStorage.setItem('best_streak', newStreak.toString());
+            }
+                
+                return true;
+            } else {
+                console.log('📅 Already logged in today');
+                return false;
+            }
+        }
+
+        function showDailyRewardModal(day) {
+            const modal = document.getElementById('dailyRewardsModal');
+            if (!modal) {
+                console.error('❌ Daily rewards modal not found');
+                return;
+            }
+            
+            console.log('🎁 Showing daily reward modal for day:', day);
+            
+            // Update modal content
+            document.getElementById('dayNumber').textContent = day;
+            document.getElementById('currentStreak').textContent = day;
+            
+            // Update progress circles
+            updateProgressCircles(day);
+            
+            // Update rewards display
+            updateRewardsDisplay(day);
+            
+            // Update tomorrow's preview
+            updateTomorrowPreview(day);
+            
+            // Show modal
+            modal.classList.add('active');
+            
+            // Track analytics
+            trackGameEvent('daily_reward_shown', { day: day });
+        }
+
+        function updateProgressCircles(day) {
+            const circles = document.querySelectorAll('.progress-circle');
+            circles.forEach((circle, index) => {
+                const circleDay = index + 1;
+                circle.classList.remove('completed', 'current', 'future');
+                
+                if (circleDay < day) {
+                    circle.classList.add('completed');
+                    circle.textContent = '✅';
+                } else if (circleDay === day) {
+                    circle.classList.add('current');
+                    circle.textContent = '🎁';
+                } else {
+                    circle.classList.add('future');
+                    circle.textContent = '⭕';
+                }
+            });
+        }
+
+        function updateRewardsDisplay(day) {
+            const reward = dailyRewards.getReward(day, 1);
+            const rewardItems = document.getElementById('rewardItems');
+            
+            rewardItems.innerHTML = '';
+            
+            // Add money reward
+            if (reward.money > 0) {
+                const moneyItem = document.createElement('div');
+                moneyItem.className = 'reward-item';
+                moneyItem.innerHTML = `
+                    <div class="reward-icon">💰</div>
+                    <div class="reward-amount">+${reward.money}</div>
+                `;
+                rewardItems.appendChild(moneyItem);
+            }
+            
+            // Add talent reward
+            if (reward.talent > 0) {
+                const talentItem = document.createElement('div');
+                talentItem.className = 'reward-item';
+                talentItem.innerHTML = `
+                    <div class="reward-icon">🎵</div>
+                    <div class="reward-amount">+${reward.talent}</div>
+                `;
+                rewardItems.appendChild(talentItem);
+            }
+            
+            // Add card reward
+            if (reward.cards > 0) {
+                const cardItem = document.createElement('div');
+                cardItem.className = 'reward-item';
+                cardItem.innerHTML = `
+                    <div class="reward-icon">⭐</div>
+                    <div class="reward-amount">+${reward.cards} Card</div>
+                `;
+                rewardItems.appendChild(cardItem);
+            }
+        }
+
+        function updateTomorrowPreview(day) {
+            const tomorrowReward = dailyRewards.getTomorrowReward(day);
+            const tomorrowElement = document.getElementById('tomorrowRewards');
+            
+            let previewText = '';
+            if (tomorrowReward.money > 0) previewText += `💰 ${tomorrowReward.money} `;
+            if (tomorrowReward.talent > 0) previewText += `🎵 ${tomorrowReward.talent} `;
+            if (tomorrowReward.cards > 0) previewText += `⭐ ${tomorrowReward.cards} Card`;
+            
+            tomorrowElement.textContent = previewText.trim();
+        }
+
+        function claimDailyReward() {
+            const day = parseInt(document.getElementById('dayNumber').textContent);
+            const reward = dailyRewards.getReward(day, 1);
+            
+            console.log('🎁 Claiming daily reward:', reward);
+            
+            // Apply rewards to game state
+            gameState.money += reward.money;
+            gameState.talent += reward.talent;
+            
+            // Add random card if applicable
+            if (reward.cards > 0) {
+                const cardTypes = ['vocal', 'dance', 'rap', 'visual', 'charisma', 'stage'];
+                const icons = { vocal: '🎤', dance: '💃', rap: '🎧', visual: '✨', charisma: '👑', stage: '🎭' };
+                
+                for (let i = 0; i < reward.cards; i++) {
+                    const randomType = cardTypes[Math.floor(Math.random() * cardTypes.length)];
+                    const level = reward.cardLevel;
+                    
+                    const existingCard = gameState.cards.find(c => c.type === randomType && c.level === level);
+                    if (existingCard) {
+                        existingCard.count++;
+                    } else {
+                        gameState.cards.push({
+                            type: randomType,
+                            level: level,
+                            count: 1,
+                            icon: icons[randomType]
+                        });
+                    }
+                }
+            }
+            
+            // Update UI
+            updateUI();
+            renderCards();
+            
+            // Create confetti effect
+            createDailyConfetti();
+            
+            // Track analytics
+            trackGameEvent('daily_reward_claimed', { 
+                day: day, 
+                money: reward.money, 
+                talent: reward.talent, 
+                cards: reward.cards 
+            });
+            
+            // Show success notification
+            showNotification(`🎁 ¡Recompensa del día ${day} reclamada!`);
+            
+            // Hide modal after delay
+            setTimeout(() => {
+                closeDailyRewardModal();
+            }, 2000);
+        }
+
+        function createDailyConfetti() {
+            const confetti = document.getElementById('dailyConfetti');
+            if (!confetti) return;
+            
+            confetti.innerHTML = '';
+            
+            // Create confetti pieces
+            for (let i = 0; i < 50; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.style.left = Math.random() * 100 + '%';
+                piece.style.animationDelay = Math.random() * 3 + 's';
+                piece.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                confetti.appendChild(piece);
+                
+                // Remove confetti after animation
+                setTimeout(() => {
+                    if (piece.parentNode) {
+                        piece.parentNode.removeChild(piece);
+                    }
+                }, 5000);
+            }
+        }
+
+        function closeDailyRewardModal() {
+            const modal = document.getElementById('dailyRewardsModal');
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        }
+
+        function skipDailyReward() {
+            closeDailyRewardModal();
+            showNotification('⏭️ Recompensa diaria saltada');
         }
 
         function updateUI() {
